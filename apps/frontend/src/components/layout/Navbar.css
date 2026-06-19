@@ -1,0 +1,204 @@
+/* ──────────────────────────────────────────────
+   Kairo — Navbar Styles
+   ────────────────────────────────────────────── */
+
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--navbar-height);
+  z-index: var(--z-sticky);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--space-6);
+  background: rgba(9, 9, 11, 0.7);
+  border-bottom: 1px solid var(--color-border-subtle);
+  transition: background-color var(--duration-slow) var(--ease-in-out),
+              border-color var(--duration-slow) var(--ease-in-out),
+              backdrop-filter var(--duration-slow) var(--ease-in-out);
+}
+
+.navbar--scrolled {
+  background: rgba(9, 9, 11, 0.85);
+  backdrop-filter: blur(20px) saturate(1.8);
+  -webkit-backdrop-filter: blur(20px) saturate(1.8);
+  border-bottom-color: var(--color-border);
+}
+
+/* ── Logo ── */
+
+.navbar__logo {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
+.navbar__logo-text {
+  font-size: var(--text-xl);
+  font-weight: var(--font-bold);
+  color: var(--color-text-primary);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.navbar__logo-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-full);
+  background: var(--color-accent);
+  box-shadow: 0 0 8px rgba(59, 130, 246, 0.5);
+}
+
+/* ── Center Nav Links ── */
+
+.navbar__links {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.navbar__link {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  border-radius: var(--radius-md);
+  transition: var(--transition-colors);
+  letter-spacing: var(--tracking-wide);
+}
+
+.navbar__link:hover {
+  color: var(--color-text-primary);
+  background: var(--color-bg-glass-hover);
+}
+
+.navbar__link--active {
+  color: var(--color-text-primary);
+}
+
+.navbar__link--active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: var(--space-3);
+  right: var(--space-3);
+  height: 2px;
+  background: var(--color-accent);
+  border-radius: var(--radius-full);
+  box-shadow: 0 0 8px rgba(59, 130, 246, 0.4);
+}
+
+/* ── Right Section ── */
+
+.navbar__right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-shrink: 0;
+}
+
+.navbar__balance {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-3);
+  background: var(--color-bg-glass);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-full);
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: var(--color-text-primary);
+  font-family: var(--font-mono);
+}
+
+.navbar__balance-icon {
+  width: 14px;
+  height: 14px;
+  color: var(--color-success-text);
+}
+
+.navbar__user-section {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  cursor: pointer;
+  padding: var(--space-1);
+  border-radius: var(--radius-full);
+  transition: var(--transition-colors);
+}
+
+.navbar__user-section:hover {
+  background: var(--color-bg-glass-hover);
+}
+
+.navbar__address {
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
+  font-family: var(--font-mono);
+  display: none;
+}
+
+/* ── Hamburger ── */
+
+.navbar__hamburger {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: var(--radius-md);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: var(--transition-colors);
+}
+
+.navbar__hamburger:hover {
+  background: var(--color-bg-glass-hover);
+  color: var(--color-text-primary);
+}
+
+.navbar__hamburger svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* ── Responsive ── */
+
+@media (min-width: 769px) {
+  .navbar__address {
+    display: block;
+  }
+}
+
+@media (max-width: 768px) {
+  .navbar {
+    padding: 0 var(--space-4);
+  }
+
+  .navbar__links {
+    display: none;
+  }
+
+  .navbar__hamburger {
+    display: flex;
+  }
+
+  .navbar__balance {
+    font-size: var(--text-xs);
+    padding: var(--space-1) var(--space-2);
+  }
+}

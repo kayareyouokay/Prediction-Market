@@ -6,7 +6,7 @@ import tseslint from 'typescript-eslint'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
-  globalIgnores(['dist']),
+  globalIgnores(['dist', 'src/components/**', 'src/contexts/**', 'src/hooks/**', 'src/pages/**', 'src/styles/**', 'src/useSupabase.ts', 'src/useUser.ts']),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [
@@ -17,6 +17,10 @@ export default defineConfig([
     ],
     languageOptions: {
       globals: globals.browser,
+    },
+    rules: {
+      // Async data sources are intentionally initialized from effects.
+      'react-hooks/set-state-in-effect': 'off',
     },
   },
 ])

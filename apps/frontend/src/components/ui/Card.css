@@ -1,0 +1,64 @@
+/* ──────────────────────────────────────────────
+   Card
+   ────────────────────────────────────────────── */
+
+.card {
+  border-radius: var(--radius-lg);
+  transition: var(--transition-colors),
+              var(--transition-transform),
+              box-shadow var(--duration-moderate) var(--ease-out);
+}
+
+/* ── Variants ── */
+
+.card--default {
+  background-color: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+}
+
+.card--glass {
+  background-color: var(--color-bg-glass);
+  border: 1px solid var(--color-border);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.card--elevated {
+  background-color: var(--color-bg-elevated);
+  border: 1px solid var(--color-border-subtle);
+  box-shadow: var(--shadow-md);
+}
+
+/* ── Padding ── */
+
+.card--padding-none {
+  padding: 0;
+}
+
+.card--padding-sm {
+  padding: var(--space-3);
+}
+
+.card--padding-md {
+  padding: var(--space-4);
+}
+
+.card--padding-lg {
+  padding: var(--space-6);
+}
+
+/* ── Hoverable ── */
+
+.card--hoverable {
+  cursor: pointer;
+}
+
+.card--hoverable:hover {
+  transform: translateY(-1px);
+  border-color: var(--color-border-strong);
+  box-shadow: var(--shadow-lg);
+}
+
+.card--hoverable:active {
+  transform: translateY(0);
+}

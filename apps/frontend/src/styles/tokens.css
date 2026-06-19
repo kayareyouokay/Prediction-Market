@@ -1,0 +1,166 @@
+/* ============================================
+   KAIRO DESIGN TOKENS
+   Dark-mode-first, institutional-grade
+   ============================================ */
+
+:root {
+  /* ── Color: Backgrounds ── */
+  --color-bg-primary: #09090b;
+  --color-bg-secondary: #0f0f12;
+  --color-bg-tertiary: #16161a;
+  --color-bg-elevated: #1c1c22;
+  --color-bg-hover: #22222a;
+  --color-bg-active: #2a2a34;
+  --color-bg-overlay: rgba(0, 0, 0, 0.6);
+  --color-bg-glass: rgba(255, 255, 255, 0.03);
+  --color-bg-glass-hover: rgba(255, 255, 255, 0.05);
+  --color-bg-glass-strong: rgba(255, 255, 255, 0.08);
+
+  /* ── Color: Borders ── */
+  --color-border: rgba(255, 255, 255, 0.06);
+  --color-border-subtle: rgba(255, 255, 255, 0.04);
+  --color-border-strong: rgba(255, 255, 255, 0.1);
+  --color-border-focus: #3b82f6;
+
+  /* ── Color: Text ── */
+  --color-text-primary: #fafafa;
+  --color-text-secondary: #a1a1aa;
+  --color-text-tertiary: #71717a;
+  --color-text-quaternary: #52525b;
+  --color-text-inverse: #09090b;
+
+  /* ── Color: Accent — Primary (Electric Blue) ── */
+  --color-accent: #3b82f6;
+  --color-accent-hover: #2563eb;
+  --color-accent-subtle: rgba(59, 130, 246, 0.1);
+  --color-accent-subtle-hover: rgba(59, 130, 246, 0.15);
+  --color-accent-text: #60a5fa;
+
+  /* ── Color: Semantic — Success / Gain (Emerald) ── */
+  --color-success: #10b981;
+  --color-success-hover: #059669;
+  --color-success-subtle: rgba(16, 185, 129, 0.1);
+  --color-success-subtle-hover: rgba(16, 185, 129, 0.15);
+  --color-success-text: #34d399;
+
+  /* ── Color: Semantic — Danger / Loss (Coral Red) ── */
+  --color-danger: #ef4444;
+  --color-danger-hover: #dc2626;
+  --color-danger-subtle: rgba(239, 68, 68, 0.1);
+  --color-danger-subtle-hover: rgba(239, 68, 68, 0.15);
+  --color-danger-text: #f87171;
+
+  /* ── Color: Semantic — Warning (Amber) ── */
+  --color-warning: #f59e0b;
+  --color-warning-subtle: rgba(245, 158, 11, 0.1);
+  --color-warning-text: #fbbf24;
+
+  /* ── Color: Semantic — Info (Sky) ── */
+  --color-info: #0ea5e9;
+  --color-info-subtle: rgba(14, 165, 233, 0.1);
+  --color-info-text: #38bdf8;
+
+  /* ── Color: Yes/No Market Colors ── */
+  --color-yes: #10b981;
+  --color-yes-subtle: rgba(16, 185, 129, 0.1);
+  --color-yes-text: #34d399;
+  --color-no: #ef4444;
+  --color-no-subtle: rgba(239, 68, 68, 0.1);
+  --color-no-text: #f87171;
+
+  /* ── Typography ── */
+  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'SF Mono', 'Fira Code', 'Fira Mono', Menlo, Consolas, monospace;
+
+  --text-xs: 0.6875rem;     /* 11px */
+  --text-sm: 0.75rem;       /* 12px */
+  --text-base: 0.8125rem;   /* 13px */
+  --text-md: 0.875rem;      /* 14px */
+  --text-lg: 1rem;          /* 16px */
+  --text-xl: 1.125rem;      /* 18px */
+  --text-2xl: 1.25rem;      /* 20px */
+  --text-3xl: 1.5rem;       /* 24px */
+  --text-4xl: 1.875rem;     /* 30px */
+  --text-5xl: 2.25rem;      /* 36px */
+  --text-6xl: 3rem;         /* 48px */
+
+  --leading-none: 1;
+  --leading-tight: 1.15;
+  --leading-snug: 1.3;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.625;
+
+  --tracking-tight: -0.025em;
+  --tracking-normal: 0;
+  --tracking-wide: 0.025em;
+  --tracking-wider: 0.05em;
+
+  --font-normal: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
+
+  /* ── Spacing (4px base) ── */
+  --space-0: 0;
+  --space-1: 0.25rem;   /* 4px */
+  --space-2: 0.5rem;    /* 8px */
+  --space-3: 0.75rem;   /* 12px */
+  --space-4: 1rem;      /* 16px */
+  --space-5: 1.25rem;   /* 20px */
+  --space-6: 1.5rem;    /* 24px */
+  --space-8: 2rem;      /* 32px */
+  --space-10: 2.5rem;   /* 40px */
+  --space-12: 3rem;     /* 48px */
+  --space-16: 4rem;     /* 64px */
+  --space-20: 5rem;     /* 80px */
+  --space-24: 6rem;     /* 96px */
+
+  /* ── Border Radius ── */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 20px;
+  --radius-full: 9999px;
+
+  /* ── Shadows ── */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.4), 0 2px 4px rgba(0, 0, 0, 0.2);
+  --shadow-xl: 0 8px 32px rgba(0, 0, 0, 0.5), 0 4px 8px rgba(0, 0, 0, 0.3);
+  --shadow-glow-accent: 0 0 20px rgba(59, 130, 246, 0.15);
+  --shadow-glow-success: 0 0 20px rgba(16, 185, 129, 0.15);
+  --shadow-glow-danger: 0 0 20px rgba(239, 68, 68, 0.15);
+
+  /* ── Transitions ── */
+  --duration-fast: 100ms;
+  --duration-base: 150ms;
+  --duration-moderate: 200ms;
+  --duration-slow: 300ms;
+  --duration-slower: 500ms;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --transition-colors: color var(--duration-base) var(--ease-in-out),
+                        background-color var(--duration-base) var(--ease-in-out),
+                        border-color var(--duration-base) var(--ease-in-out);
+  --transition-transform: transform var(--duration-moderate) var(--ease-out);
+  --transition-opacity: opacity var(--duration-moderate) var(--ease-in-out);
+  --transition-all: all var(--duration-moderate) var(--ease-out);
+
+  /* ── Z-index ── */
+  --z-base: 0;
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-modal-backdrop: 299;
+  --z-modal: 300;
+  --z-toast: 400;
+  --z-tooltip: 500;
+
+  /* ── Layout ── */
+  --max-width: 1200px;
+  --max-width-narrow: 960px;
+  --max-width-wide: 1400px;
+  --navbar-height: 56px;
+  --sidebar-width: 280px;
+}

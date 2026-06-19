@@ -93,31 +93,21 @@ async function seed() {
   }
 
   // Create some sample orders and positions
-  const market = markets[0];
-  const user1 = users[0];
-  const user2 = users[1];
-  const user3 = users[2];
+  const market = markets[0]!;
+  const user1 = users[0]!;
+  const user2 = users[1]!;
+  const user3 = users[2]!;
 
   console.log("Creating sample positions...");
-  // User1 buys Yes shares in market 1
-  await prisma.position.create({
-    data: {
-      userId: user1.id,
-      marketId: market.id,
-      type: "Yes",
-      qty: 50,
-    },
-  });
-
-  // User2 buys No shares in market 1
-  await prisma.position.create({
-    data: {
-      userId: user2.id,
-      marketId: market.id,
-      type: "No",
-      qty: 30,
-    },
-  });
+  // Inventory is deliberately sufficient to cover the seeded resting asks.
+  await prisma.position.createMany({ data: [
+    { userId: user1.id, marketId: market.id, type: "Yes", qty: 135 },
+    { userId: user1.id, marketId: market.id, type: "No", qty: 90 },
+    { userId: user2.id, marketId: market.id, type: "Yes", qty: 165 },
+    { userId: user2.id, marketId: market.id, type: "No", qty: 110 },
+    { userId: user3.id, marketId: market.id, type: "Yes", qty: 140 },
+    { userId: user3.id, marketId: market.id, type: "No", qty: 150 },
+  ] });
 
   // Create some order history
   console.log("Creating sample order history...");
@@ -352,7 +342,7 @@ async function seed() {
   });
 
   // Add liquidity to second market as well with proper pricing
-  const market2 = markets[1];
+  const market2 = markets[1]!;
   const yesOrderbook2 = {
     "57": {
       availableQty: 120,
@@ -483,23 +473,14 @@ async function seed() {
   });
 
   // Add positions for market 2
-  await prisma.position.create({
-    data: {
-      userId: user1.id,
-      marketId: market2.id,
-      type: "Yes",
-      qty: 40,
-    },
-  });
-
-  await prisma.position.create({
-    data: {
-      userId: user3.id,
-      marketId: market2.id,
-      type: "No",
-      qty: 35,
-    },
-  });
+  await prisma.position.createMany({ data: [
+    { userId: user1.id, marketId: market2.id, type: "Yes", qty: 60 },
+    { userId: user1.id, marketId: market2.id, type: "No", qty: 40 },
+    { userId: user2.id, marketId: market2.id, type: "Yes", qty: 40 },
+    { userId: user2.id, marketId: market2.id, type: "No", qty: 50 },
+    { userId: user3.id, marketId: market2.id, type: "Yes", qty: 50 },
+    { userId: user3.id, marketId: market2.id, type: "No", qty: 50 },
+  ] });
 
   // Add order history for market 2
   await prisma.orderHistory.create({

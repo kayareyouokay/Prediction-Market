@@ -11,7 +11,9 @@ export async function middleware(req: Request, res: Response, next: NextFunction
     const token = req.headers.authorization;
     try {
         const { data: { user }, error } = await supabase.auth.getUser(token);
+        if (error || !user) throw new Error("Invalid credentials");
         const address = user?.user_metadata.custom_claims.address;
+        if (!address || typeof address !== "string") throw new Error("Missing wallet address");
         const userDb = await prisma.user.upsert({
             where: {
                 address,
@@ -25,14 +27,9 @@ export async function middleware(req: Request, res: Response, next: NextFunction
             }
         })
         
-        if (address) {
-            req.userId = userDb.id;
-            next();
-        } else {
-            res.status(403).json({
-                message: "Incorrect Credentials"
-            })
-        }
+        req.userId = userDb.id;
+        req.walletAddress = address;
+        next();
     } catch (err) {
         res.status(403).json({
             message: "Incorrect Credentials"
