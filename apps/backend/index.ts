@@ -3,7 +3,7 @@ import cors from 'cors';
 import { uuid } from "uuidv4";
 import { middleware } from './middleware';
 import { prisma } from "db";
-import { CreateOrderSchema, type OrderBook } from './types';
+import { CreateOrderSchema, SplitSchema, type OrderBook } from './types';
 import { object } from 'zod';
 import { Prisma } from 'db/generated/prisma/client';
 
@@ -594,10 +594,6 @@ app.post("/sell", middleware, (req, res) => {
 
 })
 
-app.post("/merge", middleware, (req, res) => {
-
-})
-
 app.post("/split", middleware, async (req, res) => {
     const {data, success} = SplitSchema.safeParse(req.body);
     const userId: string = req.userId;
@@ -685,6 +681,128 @@ app.post("/split", middleware, async (req, res) => {
                 marketId: data.marketId
             }
         })
+    })
+})
+
+app.post("/merge", middleware, async (req, res) => {
+    const {data, success} = SplitSchema.safeParse(req.body);
+    const userId: string = req.userId;
+    if (!success) {
+        res.status(411).json({message: "Incorrect inputs"});
+        return 
+    }
+    const marketId = data?.marketId;
+
+    try {
+        await prisma.$transaction(async tx => {
+            const userResponse = await tx.$queryRaw<{id: string, address: string, usdBalance: number}[]>`SELECT * FROM "User" WHERE id=${userId} FOR UPDATE;`;
+            const user = userResponse[0];
+            if (!user) {
+                throw new Error("User not found");
+            }
+            
+            const yesPosition = await tx.position.findFirst({
+                where: {
+                    userId,
+                    marketId,
+                    type: "Yes"
+                }
+            });
+
+            const noPosition = await tx.position.findFirst({
+                where: {
+                    userId,
+                    marketId,
+                    type: "No"
+                }
+            });
+
+            if (!yesPosition || yesPosition.qty < data.amount) {
+                throw new Error("Insufficient Yes position");
+            }
+
+            if (!noPosition || noPosition.qty < data.amount) {
+                throw new Error("Insufficient No position");
+            }
+
+            await tx.position.update({
+                where: {
+                    userId_marketId_type: {
+                        userId,
+                        marketId,
+                        type: "Yes"
+                    }
+                },
+                data: {
+                    qty: {
+                        decrement: data.amount
+                    }
+                }
+            })
+
+            await tx.position.update({
+                where: {
+                    userId_marketId_type: {
+                        userId,
+                        marketId,
+                        type: "No"
+                    }
+                },
+                data: {
+                    qty: {
+                        decrement: data.amount
+                    }
+                }
+            })
+
+            await tx.user.update({
+                where: {
+                    id: userId
+                },
+                data: {
+                    usdBalance: {
+                        increment: data.amount
+                    }
+                }
+            })
+
+            await tx.orderHistory.create({
+                data: {
+                    orderType: "Merge",
+                    userId,
+                    price: 0,
+                    qty: data.amount,
+                    marketId: data.marketId
+                }
+            })
+        })
+        res.json({
+            message: "Merge successful"
+        })
+    } catch (error: any) {
+        console.error("Error merging:", error);
+        if (error.message === "Insufficient Yes position" || error.message === "Insufficient No position") {
+            res.status(403).json({
+                message: "Sorry you dont have enough position"
+            })
+        } else {
+            res.status(500).json({
+                message: "Error merging"
+            })
+        }
+    }
+})
+
+app.get("/balance", middleware, async (req, res) => {
+    const userId: string = req.userId as string;
+    const user = await prisma.user.findFirst({
+        where: {
+            id: userId
+        }
+    })
+
+    res.json({
+        balance: user?.usdBalance
     })
 })
 
