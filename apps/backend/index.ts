@@ -598,8 +598,94 @@ app.post("/merge", middleware, (req, res) => {
 
 })
 
-app.post("/split", middleware, (req, res) => {
+app.post("/split", middleware, async (req, res) => {
+    const {data, success} = SplitSchema.safeParse(req.body);
+    const userId: string = req.userId;
+    if (!success) {
+        res.status(411).json({message: "Incorrect inputs"});
+        return 
+    }
+    const marketId = data?.marketId;
 
+    await prisma.$transaction(async tx => {
+        const userResponse = await tx.$queryRaw<{id: string, address: string, usdBalance: number}[]>`SELECT * FROM "User" WHERE id=${userId} FOR UPDATE;`;
+        const user = userResponse[0];
+        if (!user) {
+            throw new Error("User not found");
+        }
+        
+        if (user.usdBalance < data.amount) {
+            res.status(403).json({
+                message: "sorry you are not allowed to do this"
+            })
+            return
+        }
+
+        await tx.user.update({
+            where: {
+                id: userId
+            },
+            data: {
+                usdBalance: {
+                    decrement: data.amount
+                }
+            }
+        })
+
+        await tx.position.upsert({
+            where: {
+                userId_marketId_type: {
+                    marketId,
+                    userId,
+                    type: "Yes"
+                }
+            },
+            create: {
+                marketId,
+                userId,
+                type: "Yes",
+                qty: data.amount
+            },
+            update: {
+                qty: {
+                    increment: data.amount
+                }
+            }
+            
+        })
+
+        await tx.position.upsert({
+            where: {
+                userId_marketId_type: {
+                    marketId,
+                    userId,
+                    type: "No"
+                }
+            },
+            create: {
+                marketId,
+                userId,
+                type: "No",
+                qty: data.amount
+            },
+            update: {
+                qty: {
+                    increment: data.amount
+                }
+            }
+            
+        })
+
+        await tx.orderHistory.create({
+            data: {
+                orderType: "Split",
+                userId,
+                price: 0,
+                qty: data.amount,
+                marketId: data.marketId
+            }
+        })
+    })
 })
 
 app.get("/balance", middleware, (req, res) => {
