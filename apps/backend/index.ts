@@ -3,9 +3,7 @@ import cors from 'cors';
 import { uuid } from "uuidv4";
 import { middleware } from './middleware';
 import { prisma } from "db";
-import { CreateOrderSchema, OfframpSchema, OnrampSchema, SplitSchema, type Orderbook } from './types';
-import { object } from 'zod';
-import { Prisma } from 'db/generated/prisma/client';
+import { CreateMarketSchema, CreateOrderSchema, OfframpSchema, OnrampSchema, ResolveMarketSchema, SplitSchema, type Orderbook } from './types';
 
 const app = express();
 const PORT = 3000;
@@ -21,6 +19,15 @@ function parseOrderbook(orderbook: unknown): Orderbook {
         return orderbook as Orderbook;
     }
     return {};
+}
+
+function requireAdmin(req: express.Request, res: express.Response): boolean {
+    const admins = (process.env.ADMIN_ADDRESSES ?? "").split(",").map(value => value.trim()).filter(Boolean);
+    if (!admins.includes(req.walletAddress)) {
+        res.status(403).json({ message: "Admin access required" });
+        return false;
+    }
+    return true;
 }
 
 app.get("/markets", async (req, res) => {
@@ -56,9 +63,13 @@ app.post("/order", middleware, async (req, res) => {
             if (!market) {
                 throw new Error("Market not found");
             }
+            if ((market as { resolution?: string | null }).resolution) {
+                throw new Error("Market already resolved");
+            }
 
             const yesOrderbook = parseOrderbook(market.yesOrderbook);
             const noOrderbook = parseOrderbook(market.noOrderbook);
+            let executedQty = 0;
 
             if (data.side == "yes" && data.type == "buy") {
                 const usd = data.qty * data.price;
@@ -79,7 +90,9 @@ app.post("/order", middleware, async (req, res) => {
                     for (const order of orders) {
                         if (leftQty <= 0) break;
                         
-                        const matchedQty = order.qty >= leftQty ? leftQty : order.qty;
+                        const remainingQty = order.qty - order.filledQty;
+                        if (remainingQty <= 0) continue;
+                        const matchedQty = Math.min(remainingQty, leftQty);
                         const reverseOrder = order.reverseOrder;
                         if (!reverseOrder) {
                             await tx.position.update({
@@ -165,20 +178,13 @@ app.post("/order", middleware, async (req, res) => {
                         })
                         
                         leftQty -= matchedQty;
+                        executedQty += matchedQty;
                         order.filledQty += matchedQty;
                         yesOrderbook[price]!.availableQty -= matchedQty;
                     }
                 }
 
-                if (leftQty > 0) {
-                    const oppositePrice = 100 - data.price;
-                    if (!noOrderbook[oppositePrice]) {
-                        noOrderbook[oppositePrice] = { availableQty: 0, orders: [] };
-                    }
-                    
-                    noOrderbook[oppositePrice]!.availableQty += leftQty;
-                    noOrderbook[oppositePrice]!.orders.push({qty: leftQty, userId, filledQty: 0, originalOrderId, reverseOrder: true});   
-                }
+                if (leftQty > 0) throw new Error("Insufficient liquidity at limit");
             }
 
             if (data.side == "yes" && data.type == "sell") {
@@ -209,7 +215,9 @@ app.post("/order", middleware, async (req, res) => {
                     for (const order of orders) {
                         if (leftQty <= 0) break;
                         
-                        const matchedQty = order.qty >= leftQty ? leftQty : order.qty;
+                        const remainingQty = order.qty - order.filledQty;
+                        if (remainingQty <= 0) continue;
+                        const matchedQty = Math.min(remainingQty, leftQty);
                         const reverseOrder = order.reverseOrder;
                         if (!reverseOrder) {
                             await tx.position.update({
@@ -283,25 +291,19 @@ app.post("/order", middleware, async (req, res) => {
                             },
                             data: {
                                 usdBalance: {
-                                    increment: Number(price) * matchedQty
+                                    increment: (100 - Number(price)) * matchedQty
                                 }
                             }
                         })
                         
                         leftQty -= matchedQty;
+                        executedQty += matchedQty;
                         order.filledQty += matchedQty;
                         noOrderbook[price]!.availableQty -= matchedQty;
                     }
                 }
 
-                if (leftQty > 0) {
-                    if (!yesOrderbook[data.price]) {
-                        yesOrderbook[data.price] = { availableQty: 0, orders: [] };
-                    }
-                    
-                    yesOrderbook[data.price]!.availableQty += leftQty;
-                    yesOrderbook[data.price]!.orders.push({qty: leftQty, userId, filledQty: 0, originalOrderId, reverseOrder: false});   
-                }
+                if (leftQty > 0) throw new Error("Insufficient liquidity at limit");
             }
 
             if (data.side == "no" && data.type == "buy") {
@@ -323,7 +325,9 @@ app.post("/order", middleware, async (req, res) => {
                     for (const order of orders) {
                         if (leftQty <= 0) break;
                         
-                        const matchedQty = order.qty >= leftQty ? leftQty : order.qty;
+                        const remainingQty = order.qty - order.filledQty;
+                        if (remainingQty <= 0) continue;
+                        const matchedQty = Math.min(remainingQty, leftQty);
                         const reverseOrder = order.reverseOrder;
                         if (!reverseOrder) {
                             await tx.position.update({
@@ -409,20 +413,13 @@ app.post("/order", middleware, async (req, res) => {
                         })
                         
                         leftQty -= matchedQty;
+                        executedQty += matchedQty;
                         order.filledQty += matchedQty;
                         noOrderbook[price]!.availableQty -= matchedQty;
                     }
                 }
 
-                if (leftQty > 0) {
-                    const oppositePrice = 100 - data.price;
-                    if (!yesOrderbook[oppositePrice]) {
-                        yesOrderbook[oppositePrice] = { availableQty: 0, orders: [] };
-                    }
-                    
-                    yesOrderbook[oppositePrice]!.availableQty += leftQty;
-                    yesOrderbook[oppositePrice]!.orders.push({qty: leftQty, userId, filledQty: 0, originalOrderId, reverseOrder: true});   
-                }
+                if (leftQty > 0) throw new Error("Insufficient liquidity at limit");
             }
 
             if (data.side == "no" && data.type == "sell") {
@@ -453,7 +450,9 @@ app.post("/order", middleware, async (req, res) => {
                     for (const order of orders) {
                         if (leftQty <= 0) break;
                         
-                        const matchedQty = order.qty >= leftQty ? leftQty : order.qty;
+                        const remainingQty = order.qty - order.filledQty;
+                        if (remainingQty <= 0) continue;
+                        const matchedQty = Math.min(remainingQty, leftQty);
                         const reverseOrder = order.reverseOrder;
                         if (!reverseOrder) {
                             await tx.position.update({
@@ -527,25 +526,19 @@ app.post("/order", middleware, async (req, res) => {
                             },
                             data: {
                                 usdBalance: {
-                                    increment: Number(price) * matchedQty
+                                    increment: (100 - Number(price)) * matchedQty
                                 }
                             }
                         })
                         
                         leftQty -= matchedQty;
+                        executedQty += matchedQty;
                         order.filledQty += matchedQty;
                         yesOrderbook[price]!.availableQty -= matchedQty;
                     }
                 }
 
-                if (leftQty > 0) {
-                    if (!noOrderbook[data.price]) {
-                        noOrderbook[data.price] = { availableQty: 0, orders: [] };
-                    }
-                    
-                    noOrderbook[data.price]!.availableQty += leftQty;
-                    noOrderbook[data.price]!.orders.push({qty: leftQty, userId, filledQty: 0, originalOrderId, reverseOrder: false});   
-                }
+                if (leftQty > 0) throw new Error("Insufficient liquidity at limit");
             }
 
             await tx.orderHistory.create({
@@ -561,7 +554,8 @@ app.post("/order", middleware, async (req, res) => {
             await tx.market.update({
                 data: {
                     yesOrderbook: JSON.stringify(yesOrderbook),
-                    noOrderbook: JSON.stringify(noOrderbook)
+                    noOrderbook: JSON.stringify(noOrderbook),
+                    totalQty: { increment: executedQty }
                 },
                 where: {
                     id: data.marketId
@@ -581,6 +575,10 @@ app.post("/order", middleware, async (req, res) => {
             res.status(403).json({
                 message: "Sorry you dont have enough position"
             })
+        } else if (error.message === "Market already resolved") {
+            res.status(409).json({ message: "This market is resolved" });
+        } else if (error.message === "Market not found" || error.message === "Insufficient liquidity at limit") {
+            res.status(422).json({ message: error.message });
         } else {
             res.status(500).json({
                 message: "Error executing order"
@@ -590,9 +588,14 @@ app.post("/order", middleware, async (req, res) => {
 })
 
 app.get("/market", async (req, res) => {
+    const marketId = typeof req.query.marketId === "string" ? req.query.marketId : undefined;
+    if (!marketId) {
+        res.status(400).json({ message: "marketId is required" });
+        return;
+    }
     const market = await prisma.market.findFirst({
         where: {
-            id: req.query.marketId as string
+            id: marketId
         }
     });
 
@@ -602,8 +605,48 @@ app.get("/market", async (req, res) => {
 })
 
 app.post("/sell", middleware, (req, res) => {
-
+    res.status(410).json({ message: "Use POST /order with type=sell" });
 })
+
+app.post("/admin/market", middleware, async (req, res) => {
+    if (!requireAdmin(req, res)) return;
+    const parsed = CreateMarketSchema.safeParse(req.body);
+    if (!parsed.success) {
+        res.status(400).json({ message: "Incorrect inputs" });
+        return;
+    }
+    const market = await prisma.market.create({
+        data: { ...parsed.data, yesOrderbook: {}, noOrderbook: {}, totalQty: 0 }
+    });
+    res.status(201).json({ market });
+});
+
+app.post("/admin/resolve", middleware, async (req, res) => {
+    if (!requireAdmin(req, res)) return;
+    const parsed = ResolveMarketSchema.safeParse(req.body);
+    if (!parsed.success) {
+        res.status(400).json({ message: "Incorrect inputs" });
+        return;
+    }
+    try {
+        await prisma.$transaction(async tx => {
+            const rows = await tx.$queryRaw<{ id: string; resolution: "Yes" | "No" | null }[]>`SELECT id, resolution FROM "Market" WHERE id=${parsed.data.marketId} FOR UPDATE`;
+            const market = rows[0];
+            if (!market) throw new Error("Market not found");
+            if (market.resolution) throw new Error("Market already resolved");
+            const winners = await tx.position.findMany({ where: { marketId: market.id, type: parsed.data.resolution } });
+            for (const winner of winners) {
+                await tx.user.update({ where: { id: winner.userId }, data: { usdBalance: { increment: winner.qty * 100 } } });
+            }
+            await tx.position.deleteMany({ where: { marketId: market.id } });
+            await tx.market.update({ where: { id: market.id }, data: { resolution: parsed.data.resolution, yesOrderbook: {}, noOrderbook: {} } });
+        });
+        res.json({ message: "Market resolved and winning shares redeemed" });
+    } catch (error: any) {
+        const status = error.message === "Market not found" ? 404 : 409;
+        res.status(status).json({ message: error.message ?? "Unable to resolve market" });
+    }
+});
 
 app.post("/split", middleware, async (req, res) => {
     const {data, success} = SplitSchema.safeParse(req.body);
@@ -614,6 +657,7 @@ app.post("/split", middleware, async (req, res) => {
     }
     const marketId = data?.marketId;
 
+    try {
     await prisma.$transaction(async tx => {
         const userResponse = await tx.$queryRaw<{id: string, address: string, usdBalance: number}[]>`SELECT * FROM "User" WHERE id=${userId} FOR UPDATE;`;
         const user = userResponse[0];
@@ -622,10 +666,7 @@ app.post("/split", middleware, async (req, res) => {
         }
         
         if (user.usdBalance < data.amount) {
-            res.status(403).json({
-                message: "sorry you are not allowed to do this"
-            })
-            return
+            throw new Error("Insufficient USD balance");
         }
 
         await tx.user.update({
@@ -693,6 +734,17 @@ app.post("/split", middleware, async (req, res) => {
             }
         })
     })
+    res.json({
+        message: "Split successful"
+    })
+    } catch (error: any) {
+        console.error("Error splitting:", error);
+        res.status(error.message === "Insufficient USD balance" ? 403 : 500).json({
+            message: error.message === "Insufficient USD balance"
+                ? "Sorry you dont have enough $ in your account"
+                : "Error splitting position"
+        });
+    }
 })
 
 app.post("/merge", middleware, async (req, res) => {
@@ -854,6 +906,11 @@ app.post("/onramp", middleware, async (req, res) => {
         return;
     }
 
+    if (process.env.ENABLE_DEV_FAUCET !== "true") {
+        res.status(501).json({ message: "Payment processing is not configured" });
+        return;
+    }
+
     try {
         await prisma.$transaction(async tx => {
             const userResponse = await tx.$queryRaw<{id: string, address: string, usdBalance: number}[]>`SELECT * FROM "User" WHERE id=${userId} FOR UPDATE;`;
@@ -901,50 +958,8 @@ app.post("/offramp", middleware, async (req, res) => {
         return;
     }
 
-    try {
-        await prisma.$transaction(async tx => {
-            const userResponse = await tx.$queryRaw<{id: string, address: string, usdBalance: number}[]>`SELECT * FROM "User" WHERE id=${userId} FOR UPDATE;`;
-            const user = userResponse[0];
-            if (!user) {
-                throw new Error("User not found");
-            }
-
-            // Convert USD amount to cents (integer) for storage
-            const amountInCents = Math.round(data.amount * 100);
-
-            if (user.usdBalance < amountInCents) {
-                throw new Error("Insufficient USD balance");
-            }
-
-            await tx.user.update({
-                where: {
-                    id: userId
-                },
-                data: {
-                    usdBalance: {
-                        decrement: amountInCents
-                    }
-                }
-            });
-
-        });
-
-        res.json({
-            message: "Offramp successful",
-            amount: data.amount
-        });
-    } catch (error: any) {
-        console.error("Error processing offramp:", error);
-        if (error.message === "Insufficient USD balance") {
-            res.status(403).json({
-                message: "Insufficient USD balance for offramp"
-            });
-        } else {
-            res.status(500).json({
-                message: "Error processing offramp"
-            });
-        }
-    }
+    res.status(501).json({ message: "Payment processing is not configured" });
+    return;
 });
 
 async function main() {
