@@ -3,14 +3,25 @@ import cors from 'cors';
 import { uuid } from "uuidv4";
 import { middleware } from './middleware';
 import { prisma } from "db";
-import { CreateOrderSchema, SplitSchema, type OrderBook } from './types';
+import { CreateOrderSchema, SplitSchema, type Orderbook } from './types';
 import { object } from 'zod';
 import { Prisma } from 'db/generated/prisma/client';
 
 const app = express();
+const PORT = 3000;
 
 app.use(express.json());
 app.use(cors());
+
+function parseOrderbook(orderbook: unknown): Orderbook {
+    if (typeof orderbook === "string") {
+        return JSON.parse(orderbook);
+    }
+    if (orderbook && typeof orderbook === "object") {
+        return orderbook as Orderbook;
+    }
+    return {};
+}
 
 app.get("/markets", async (req, res) => {
     const markets = await prisma.market.findMany();
@@ -806,23 +817,140 @@ app.get("/balance", middleware, async (req, res) => {
     })
 })
 
-app.get("/balance", middleware, (req, res) => {
+app.get("/positions", middleware, async (req, res) => {
+    const userId: string = req.userId as string;
+    const positions = await prisma.position.findMany({
+        where: {
+            userId
+        }
+    })
 
+    res.json({
+        positions
+    })
 })
 
-app.get("/positions", middleware, (req, res) => {
+app.post("/history", middleware, async (req, res) => {
+    const userId: string = req.userId as string;
+    const history = await prisma.orderHistory.findMany({
+        where: {
+            userId
+        }
+    })
 
+    res.json({
+        history
+    })
 })
 
-app.get("/history", middleware, (req, res) => {
+app.post("/onramp", middleware, async (req, res) => {
+    const { success, data } = OnrampSchema.safeParse(req.body);
+    const userId: string = req.userId;
 
-})
+    if (!success) {
+        res.status(411).json({
+            message: "Incorrect inputs"
+        })
+        return;
+    }
+
+    try {
+        await prisma.$transaction(async tx => {
+            const userResponse = await tx.$queryRaw<{id: string, address: string, usdBalance: number}[]>`SELECT * FROM "User" WHERE id=${userId} FOR UPDATE;`;
+            const user = userResponse[0];
+            if (!user) {
+                throw new Error("User not found");
+            }
+
+            // Convert USD amount to cents (integer) for storage
+            const amountInCents = Math.round(data.amount * 100);
+
+            await tx.user.update({
+                where: {
+                    id: userId
+                },
+                data: {
+                    usdBalance: {
+                        increment: amountInCents
+                    }
+                }
+            });
+
+        });
+
+        res.json({
+            message: "Onramp successful",
+            amount: data.amount
+        });
+    } catch (error: any) {
+        console.error("Error processing onramp:", error);
+        res.status(500).json({
+            message: "Error processing onramp"
+        });
+    }
+});
+
+app.post("/offramp", middleware, async (req, res) => {
+    const { success, data } = OfframpSchema.safeParse(req.body);
+    const userId: string = req.userId;
+
+    if (!success) {
+        res.status(411).json({
+            message: "Incorrect inputs"
+        })
+        return;
+    }
+
+    try {
+        await prisma.$transaction(async tx => {
+            const userResponse = await tx.$queryRaw<{id: string, address: string, usdBalance: number}[]>`SELECT * FROM "User" WHERE id=${userId} FOR UPDATE;`;
+            const user = userResponse[0];
+            if (!user) {
+                throw new Error("User not found");
+            }
+
+            // Convert USD amount to cents (integer) for storage
+            const amountInCents = Math.round(data.amount * 100);
+
+            if (user.usdBalance < amountInCents) {
+                throw new Error("Insufficient USD balance");
+            }
+
+            await tx.user.update({
+                where: {
+                    id: userId
+                },
+                data: {
+                    usdBalance: {
+                        decrement: amountInCents
+                    }
+                }
+            });
+
+        });
+
+        res.json({
+            message: "Offramp successful",
+            amount: data.amount
+        });
+    } catch (error: any) {
+        console.error("Error processing offramp:", error);
+        if (error.message === "Insufficient USD balance") {
+            res.status(403).json({
+                message: "Insufficient USD balance for offramp"
+            });
+        } else {
+            res.status(500).json({
+                message: "Error processing offramp"
+            });
+        }
+    }
+});
 
 async function main() {
     try {
         await prisma.$connect();
         console.log("Database connected");
-        console.log("DB URL:", process.env.DATABASE_URL);
     } catch (err) {
         console.error(err);
     }
@@ -830,4 +958,6 @@ async function main() {
 
 main();
 
-app.listen(3000);
+app.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
+});
