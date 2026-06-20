@@ -30,26 +30,6 @@ function requireAdmin(req: express.Request, res: express.Response): boolean {
     return true;
 }
 
-/**
- * FIX #5: Prune fully-filled orders from an orderbook price level.
- * Without this, dead orders accumulate in the JSON blob indefinitely,
- * making matching slower and the stored payload larger over time.
- */
-function pruneFilledOrders(orderbook: Orderbook): Orderbook {
-    const pruned: Orderbook = {};
-    for (const price of Object.keys(orderbook)) {
-        const level = orderbook[price]!;
-        const activeOrders = level.orders.filter(o => o.qty - o.filledQty > 0);
-        if (activeOrders.length > 0) {
-            pruned[price] = {
-                availableQty: activeOrders.reduce((sum, o) => sum + (o.qty - o.filledQty), 0),
-                orders: activeOrders,
-            };
-        }
-    }
-    return pruned;
-}
-
 app.get("/markets", async (req, res) => {
     const markets = await prisma.market.findMany();
     res.json({ markets });
@@ -75,8 +55,12 @@ app.post("/order", middleware, async (req, res) => {
             if (!user) throw new Error("User not found");
 
             const market = response[0];
-            if (!market) throw new Error("Market not found");
-            if ((market as { resolution?: string | null }).resolution) throw new Error("Market already resolved");
+            if (!market) {
+                throw new Error("Market not found");
+            }
+            if ((market as { resolution?: string | null }).resolution) {
+                throw new Error("Market already resolved");
+            }
 
             const yesOrderbook = parseOrderbook(market.yesOrderbook);
             const noOrderbook = parseOrderbook(market.noOrderbook);
@@ -104,16 +88,12 @@ app.post("/order", middleware, async (req, res) => {
 
                     for (const order of orders) {
                         if (leftQty <= 0) break;
-
+                        
                         const remainingQty = order.qty - order.filledQty;
                         if (remainingQty <= 0) continue;
-
                         const matchedQty = Math.min(remainingQty, leftQty);
-
-                        if (!order.reverseOrder) {
-                            // ── Normal Yes-sell order ──────────────────────────
-                            // Counterparty originally sold Yes tokens they held.
-                            // They already gave up the tokens; now they get paid.
+                        const reverseOrder = order.reverseOrder;
+                        if (!reverseOrder) {
                             await tx.position.update({
                                 where: { userId_marketId_type: { userId: order.userId, marketId: data.marketId, type: "Yes" } },
                                 data: { qty: { decrement: matchedQty } },
@@ -188,15 +168,12 @@ app.post("/order", middleware, async (req, res) => {
 
                     for (const order of orders) {
                         if (leftQty <= 0) break;
-
+                        
                         const remainingQty = order.qty - order.filledQty;
                         if (remainingQty <= 0) continue;
-
                         const matchedQty = Math.min(remainingQty, leftQty);
-
-                        if (!order.reverseOrder) {
-                            // ── Normal No-sell order ───────────────────────────
-                            // Counterparty is selling No tokens they held.
+                        const reverseOrder = order.reverseOrder;
+                        if (!reverseOrder) {
                             await tx.position.update({
                                 where: { userId_marketId_type: { userId: order.userId, marketId: data.marketId, type: "No" } },
                                 data: { qty: { decrement: matchedQty } },
@@ -230,10 +207,16 @@ app.post("/order", middleware, async (req, res) => {
                         // Yes-seller receives (100 - noPrice) per share
                         // because yesPrice + noPrice = 100
                         await tx.user.update({
-                            where: { id: userId },
-                            data: { usdBalance: { increment: (100 - Number(price)) * matchedQty } },
-                        });
-
+                            where: {
+                                id: userId
+                            },
+                            data: {
+                                usdBalance: {
+                                    increment: (100 - Number(price)) * matchedQty
+                                }
+                            }
+                        })
+                        
                         leftQty -= matchedQty;
                         executedQty += matchedQty;
                         order.filledQty += matchedQty;
@@ -263,14 +246,12 @@ app.post("/order", middleware, async (req, res) => {
 
                     for (const order of orders) {
                         if (leftQty <= 0) break;
-
+                        
                         const remainingQty = order.qty - order.filledQty;
                         if (remainingQty <= 0) continue;
-
                         const matchedQty = Math.min(remainingQty, leftQty);
-
-                        if (!order.reverseOrder) {
-                            // ── Normal No-sell order ───────────────────────────
+                        const reverseOrder = order.reverseOrder;
+                        if (!reverseOrder) {
                             await tx.position.update({
                                 where: { userId_marketId_type: { userId: order.userId, marketId: data.marketId, type: "No" } },
                                 data: { qty: { decrement: matchedQty } },
@@ -334,14 +315,12 @@ app.post("/order", middleware, async (req, res) => {
 
                     for (const order of orders) {
                         if (leftQty <= 0) break;
-
+                        
                         const remainingQty = order.qty - order.filledQty;
                         if (remainingQty <= 0) continue;
-
                         const matchedQty = Math.min(remainingQty, leftQty);
-
-                        if (!order.reverseOrder) {
-                            // ── Normal Yes-sell order ──────────────────────────
+                        const reverseOrder = order.reverseOrder;
+                        if (!reverseOrder) {
                             await tx.position.update({
                                 where: { userId_marketId_type: { userId: order.userId, marketId: data.marketId, type: "Yes" } },
                                 data: { qty: { decrement: matchedQty } },
@@ -370,10 +349,16 @@ app.post("/order", middleware, async (req, res) => {
                         });
                         // No-seller receives (100 - yesPrice) per share
                         await tx.user.update({
-                            where: { id: userId },
-                            data: { usdBalance: { increment: (100 - Number(price)) * matchedQty } },
-                        });
-
+                            where: {
+                                id: userId
+                            },
+                            data: {
+                                usdBalance: {
+                                    increment: (100 - Number(price)) * matchedQty
+                                }
+                            }
+                        })
+                        
                         leftQty -= matchedQty;
                         executedQty += matchedQty;
                         order.filledQty += matchedQty;
@@ -398,9 +383,9 @@ app.post("/order", middleware, async (req, res) => {
             // FIX #5: Prune fully-filled orders before persisting the orderbook
             await tx.market.update({
                 data: {
-                    yesOrderbook: JSON.stringify(pruneFilledOrders(yesOrderbook)),
-                    noOrderbook: JSON.stringify(pruneFilledOrders(noOrderbook)),
-                    totalQty: { increment: executedQty },
+                    yesOrderbook: JSON.stringify(yesOrderbook),
+                    noOrderbook: JSON.stringify(noOrderbook),
+                    totalQty: { increment: executedQty }
                 },
                 where: { id: data.marketId },
             });
@@ -412,7 +397,9 @@ app.post("/order", middleware, async (req, res) => {
         if (error.message === "Insufficient USD balance") {
             res.status(403).json({ message: "Sorry you dont have enough $ in your account" });
         } else if (error.message === "Insufficient Yes position" || error.message === "Insufficient No position") {
-            res.status(403).json({ message: "Sorry you dont have enough position" });
+            res.status(403).json({
+                message: "Sorry you dont have enough position"
+            })
         } else if (error.message === "Market already resolved") {
             res.status(409).json({ message: "This market is resolved" });
         } else if (error.message === "Market not found" || error.message === "Insufficient liquidity at limit") {
@@ -429,13 +416,20 @@ app.get("/market", async (req, res) => {
         res.status(400).json({ message: "marketId is required" });
         return;
     }
-    const market = await prisma.market.findFirst({ where: { id: marketId } });
-    res.json({ market });
-});
+    const market = await prisma.market.findFirst({
+        where: {
+            id: marketId
+        }
+    });
+
+    res.json({
+        market
+    })
+})
 
 app.post("/sell", middleware, (req, res) => {
     res.status(410).json({ message: "Use POST /order with type=sell" });
-});
+})
 
 app.post("/admin/market", middleware, async (req, res) => {
     if (!requireAdmin(req, res)) return;
@@ -445,7 +439,7 @@ app.post("/admin/market", middleware, async (req, res) => {
         return;
     }
     const market = await prisma.market.create({
-        data: { ...parsed.data, yesOrderbook: {}, noOrderbook: {}, totalQty: 0 },
+        data: { ...parsed.data, yesOrderbook: {}, noOrderbook: {}, totalQty: 0 }
     });
     res.status(201).json({ market });
 });
@@ -487,11 +481,16 @@ app.post("/split", middleware, async (req, res) => {
     const marketId = data?.marketId;
 
     try {
-        await prisma.$transaction(async tx => {
-            const userResponse = await tx.$queryRaw<{ id: string, address: string, usdBalance: number }[]>`SELECT * FROM "User" WHERE id=${userId} FOR UPDATE;`;
-            const user = userResponse[0];
-            if (!user) throw new Error("User not found");
-            if (user.usdBalance < data.amount) throw new Error("Insufficient USD balance");
+    await prisma.$transaction(async tx => {
+        const userResponse = await tx.$queryRaw<{id: string, address: string, usdBalance: number}[]>`SELECT * FROM "User" WHERE id=${userId} FOR UPDATE;`;
+        const user = userResponse[0];
+        if (!user) {
+            throw new Error("User not found");
+        }
+        
+        if (user.usdBalance < data.amount) {
+            throw new Error("Insufficient USD balance");
+        }
 
             await tx.user.update({ where: { id: userId }, data: { usdBalance: { decrement: data.amount } } });
 
@@ -506,20 +505,50 @@ app.post("/split", middleware, async (req, res) => {
                 update: { qty: { increment: data.amount } },
             });
 
-            await tx.orderHistory.create({
-                data: { orderType: "Split", userId, price: 0, qty: data.amount, marketId: data.marketId },
-            });
-        });
-        res.json({ message: "Split successful" });
+        await tx.position.upsert({
+            where: {
+                userId_marketId_type: {
+                    marketId,
+                    userId,
+                    type: "No"
+                }
+            },
+            create: {
+                marketId,
+                userId,
+                type: "No",
+                qty: data.amount
+            },
+            update: {
+                qty: {
+                    increment: data.amount
+                }
+            }
+            
+        })
+
+        await tx.orderHistory.create({
+            data: {
+                orderType: "Split",
+                userId,
+                price: 0,
+                qty: data.amount,
+                marketId: data.marketId
+            }
+        })
+    })
+    res.json({
+        message: "Split successful"
+    })
     } catch (error: any) {
         console.error("Error splitting:", error);
         res.status(error.message === "Insufficient USD balance" ? 403 : 500).json({
             message: error.message === "Insufficient USD balance"
                 ? "Sorry you dont have enough $ in your account"
-                : "Error splitting position",
+                : "Error splitting position"
         });
     }
-});
+})
 
 app.post("/merge", middleware, async (req, res) => {
     const { data, success } = SplitSchema.safeParse(req.body);
@@ -598,6 +627,11 @@ app.post("/onramp", middleware, async (req, res) => {
         return;
     }
 
+    if (process.env.ENABLE_DEV_FAUCET !== "true") {
+        res.status(501).json({ message: "Payment processing is not configured" });
+        return;
+    }
+
     try {
         await prisma.$transaction(async tx => {
             const userResponse = await tx.$queryRaw<{ id: string, address: string, usdBalance: number }[]>`SELECT * FROM "User" WHERE id=${userId} FOR UPDATE;`;
@@ -636,7 +670,9 @@ app.post("/offramp", middleware, async (req, res) => {
         res.status(411).json({ message: "Incorrect inputs" });
         return;
     }
+
     res.status(501).json({ message: "Payment processing is not configured" });
+    return;
 });
 
 async function main() {
