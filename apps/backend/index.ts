@@ -667,27 +667,6 @@ app.post("/split", middleware, async (req, res) => {
         update: { qty: { increment: data.amount } },
       });
 
-      await tx.position.upsert({
-        where: {
-          userId_marketId_type: {
-            marketId,
-            userId,
-            type: "No",
-          },
-        },
-        create: {
-          marketId,
-          userId,
-          type: "No",
-          qty: data.amount,
-        },
-        update: {
-          qty: {
-            increment: data.amount,
-          },
-        },
-      });
-
       await tx.orderHistory.create({
         data: {
           orderType: "Split",
@@ -825,17 +804,12 @@ app.post("/onramp", middleware, async (req, res) => {
       // FIX #2: The order-matching logic uses raw price values in a 0–100
       // cent scale (e.g. price=60 means 60¢ per share, so 10 shares costs
       // 600 units).  usdBalance must therefore be stored in the SAME unit —
-      // i.e. already-scaled cents — NOT multiplied by 100 again here.
+      // i.e. already-scaled cents.
       //
-      // Original bug: `Math.round(data.amount * 100)` stored dollars as
-      // cents, giving users 100× their intended balance and making every
-      // order deduction 100× too cheap in real-money terms.
-      //
-      // Fix: store `data.amount` directly (caller passes the value in the
-      // same unit the matching engine uses).
+      // Fix: Convert the incoming USD amount to cents (integer) for storage.
       await tx.user.update({
         where: { id: userId },
-        data: { usdBalance: { increment: data.amount } },
+        data: { usdBalance: { increment: Math.round(data.amount * 100) } },
       });
     });
 

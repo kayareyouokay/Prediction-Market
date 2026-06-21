@@ -63,25 +63,43 @@ function estimateBuy(book: Market["yesOrderbook"] | string, budget: number) {
     .filter(([, lvl]) => lvl.availableQty > 0)
     .map(([p, lvl]) => ({ price: Number(p), qty: lvl.availableQty }))
     .sort((a, b) => a.price - b.price);
-  let remaining = budget;
-  let shares = 0;
-  let cost = 0;
-  let limitPrice = 0;
-  for (const level of levels) {
-    if (remaining <= 0) break;
-    const affordable = Math.floor(remaining / level.price);
-    if (affordable <= 0) break;
-    const fill = Math.min(affordable, level.qty);
-    shares += fill;
-    cost += fill * level.price;
-    remaining -= fill * level.price;
-    limitPrice = level.price;
+
+  let bestShares = 0;
+  let bestLimitPrice = 0;
+  let bestCost = 0;
+
+  for (let i = 0; i < levels.length; i++) {
+    const P = levels[i].price;
+    let Q = 0;
+    for (let j = 0; j <= i; j++) {
+      Q += levels[j].qty;
+    }
+    const maxQtyByBudget = Math.floor(budget / P);
+    const fillable = Math.min(Q, maxQtyByBudget);
+    if (fillable > bestShares) {
+      bestShares = fillable;
+      bestLimitPrice = P;
+      let tempQty = fillable;
+      let tempCost = 0;
+      for (let j = 0; j <= i; j++) {
+        if (tempQty <= 0) break;
+        const fill = Math.min(tempQty, levels[j].qty);
+        tempCost += fill * levels[j].price;
+        tempQty -= fill;
+      }
+      bestCost = tempCost;
+    }
   }
+
+  if (bestShares === 0 && levels.length > 0) {
+    bestLimitPrice = levels[0].price;
+  }
+
   return {
-    shares,
-    cost,
-    limitPrice,
-    avgPrice: shares > 0 ? Math.round(cost / shares) : 0,
+    shares: bestShares,
+    cost: bestCost,
+    limitPrice: bestLimitPrice,
+    avgPrice: bestShares > 0 ? Math.round(bestCost / bestShares) : 0,
   };
 }
 
