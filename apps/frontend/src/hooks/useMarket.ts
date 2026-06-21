@@ -4,9 +4,9 @@
    for live orderbook updates
    ────────────────────────────────────────────── */
 
-import { useState, useEffect, useCallback, useRef } from 'react';
-import type { Market } from '@/lib/types';
-import { fetchMarket } from '@/lib/api';
+import { useState, useEffect, useCallback, useRef } from "react";
+import type { Market } from "@/lib/types";
+import { fetchMarket } from "@/lib/api";
 
 interface UseMarketOptions {
   /** Polling interval in milliseconds. Pass 0 or undefined to disable. */
@@ -49,9 +49,9 @@ export function useMarket(
           const message =
             err instanceof Error
               ? err.message
-              : typeof err === 'object' && err !== null && 'message' in err
+              : typeof err === "object" && err !== null && "message" in err
                 ? String((err as { message: unknown }).message)
-                : 'Failed to fetch market';
+                : "Failed to fetch market";
           setError(message);
         }
       } finally {

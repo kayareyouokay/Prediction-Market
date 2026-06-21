@@ -3,10 +3,10 @@
    Fetches the authenticated user's positions
    ────────────────────────────────────────────── */
 
-import { useState, useEffect, useCallback, useRef } from 'react';
-import type { Position } from '@/lib/types';
-import { fetchPositions } from '@/lib/api';
-import { useAuth } from '@/contexts/AuthContext';
+import { useState, useEffect, useCallback, useRef } from "react";
+import type { Position } from "@/lib/types";
+import { fetchPositions } from "@/lib/api";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface UsePositionsReturn {
   positions: Position[];
@@ -39,9 +39,9 @@ export function usePositions(): UsePositionsReturn {
         const message =
           err instanceof Error
             ? err.message
-            : typeof err === 'object' && err !== null && 'message' in err
+            : typeof err === "object" && err !== null && "message" in err
               ? String((err as { message: unknown }).message)
-              : 'Failed to fetch positions';
+              : "Failed to fetch positions";
         setError(message);
       }
     } finally {

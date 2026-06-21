@@ -4,10 +4,14 @@
    operations with shared loading/error state
    ────────────────────────────────────────────── */
 
-import { useState, useCallback } from 'react';
-import type { CreateOrderRequest, SplitRequest, MergeRequest } from '@/lib/types';
-import { placeOrder, splitPosition, mergePosition } from '@/lib/api';
-import { useAuth } from '@/contexts/AuthContext';
+import { useState, useCallback } from "react";
+import type {
+  CreateOrderRequest,
+  SplitRequest,
+  MergeRequest,
+} from "@/lib/types";
+import { placeOrder, splitPosition, mergePosition } from "@/lib/api";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface UseTradingReturn {
   submitOrder: (data: CreateOrderRequest) => Promise<boolean>;
@@ -20,10 +24,10 @@ interface UseTradingReturn {
 
 function extractErrorMessage(err: unknown): string {
   if (err instanceof Error) return err.message;
-  if (typeof err === 'object' && err !== null && 'message' in err) {
+  if (typeof err === "object" && err !== null && "message" in err) {
     return String((err as { message: unknown }).message);
   }
-  return 'An unexpected error occurred';
+  return "An unexpected error occurred";
 }
 
 export function useTrading(): UseTradingReturn {

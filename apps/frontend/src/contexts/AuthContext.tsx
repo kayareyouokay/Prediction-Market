@@ -11,9 +11,9 @@ import {
   useState,
   useCallback,
   type ReactNode,
-} from 'react';
-import { supabase } from '../lib/supabase';
-import { fetchBalance } from '../lib/api';
+} from "react";
+import { supabase } from "../lib/supabase";
+import { fetchBalance } from "../lib/api";
 
 interface AuthUser {
   address: string;
@@ -37,13 +37,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [balance, setBalance] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
 
-  const extractUser = useCallback((supabaseUser: { id: string; user_metadata?: Record<string, unknown> } | null): AuthUser | null => {
-    if (!supabaseUser) return null;
-    const claims = supabaseUser.user_metadata?.custom_claims as Record<string, string> | undefined;
-    const address = claims?.address;
-    if (!address) return null;
-    return { address, supabaseId: supabaseUser.id };
-  }, []);
+  const extractUser = useCallback(
+    (
+      supabaseUser: {
+        id: string;
+        user_metadata?: Record<string, unknown>;
+      } | null,
+    ): AuthUser | null => {
+      if (!supabaseUser) return null;
+      const claims = supabaseUser.user_metadata?.custom_claims as
+        | Record<string, string>
+        | undefined;
+      const address = claims?.address;
+      if (!address) return null;
+      return { address, supabaseId: supabaseUser.id };
+    },
+    [],
+  );
 
   const refreshBalance = useCallback(async () => {
     try {
@@ -78,19 +88,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     init();
 
     // Listen for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
-        if (!mounted) return;
-        const authUser = extractUser(session?.user ?? null);
-        setUser(authUser);
-        if (authUser) {
-          // Small delay to ensure backend processes the new user
-          setTimeout(() => refreshBalance(), 500);
-        } else {
-          setBalance(0);
-        }
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (!mounted) return;
+      const authUser = extractUser(session?.user ?? null);
+      setUser(authUser);
+      if (authUser) {
+        // Small delay to ensure backend processes the new user
+        setTimeout(() => refreshBalance(), 500);
+      } else {
+        setBalance(0);
       }
-    );
+    });
 
     return () => {
       mounted = false;
@@ -100,8 +110,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signIn = useCallback(async () => {
     await supabase.auth.signInWithWeb3({
-      chain: 'solana',
-      statement: 'I accept the Terms of Service at Kairo',
+      chain: "solana",
+      statement: "I accept the Terms of Service at Kairo",
     } as Parameters<typeof supabase.auth.signInWithWeb3>[0]);
   }, []);
 
@@ -131,7 +141,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 export function useAuth(): AuthContextValue {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 }

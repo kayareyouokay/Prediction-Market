@@ -1,6 +1,11 @@
-import { type InputHTMLAttributes, type ReactNode, forwardRef, useId } from 'react';
-import { cn } from '@/lib/utils';
-import './Input.css';
+import {
+  type InputHTMLAttributes,
+  type ReactNode,
+  forwardRef,
+  useId,
+} from "react";
+import { cn } from "@/lib/utils";
+import "./Input.css";
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
@@ -31,8 +36,8 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
     return (
       <div
         className={cn(
-          'input-field',
-          fullWidth && 'input-field--full-width',
+          "input-field",
+          fullWidth && "input-field--full-width",
           className,
         )}
       >
@@ -43,8 +48,8 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
         )}
         <div
           className={cn(
-            'input-field__wrapper',
-            error && 'input-field__wrapper--error',
+            "input-field__wrapper",
+            error && "input-field__wrapper--error",
           )}
         >
           {prefix && <span className="input-field__prefix">{prefix}</span>}
@@ -68,7 +73,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
   },
 );
 
-Input.displayName = 'Input';
+Input.displayName = "Input";
 
 export { Input };
 export type { InputProps };

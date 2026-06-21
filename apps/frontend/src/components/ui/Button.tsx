@@ -1,10 +1,10 @@
-import { type ButtonHTMLAttributes, forwardRef } from 'react';
-import { cn } from '@/lib/utils';
-import './Button.css';
+import { type ButtonHTMLAttributes, forwardRef } from "react";
+import { cn } from "@/lib/utils";
+import "./Button.css";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'ghost' | 'danger' | 'success';
-  size?: 'sm' | 'md' | 'lg';
+  variant?: "primary" | "secondary" | "ghost" | "danger" | "success";
+  size?: "sm" | "md" | "lg";
   isLoading?: boolean;
   fullWidth?: boolean;
 }
@@ -12,8 +12,8 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   (
     {
-      variant = 'primary',
-      size = 'md',
+      variant = "primary",
+      size = "md",
       isLoading = false,
       fullWidth = false,
       disabled,
@@ -27,11 +27,11 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       <button
         ref={ref}
         className={cn(
-          'button',
+          "button",
           `button--${variant}`,
           `button--${size}`,
-          fullWidth && 'button--full-width',
-          isLoading && 'button--loading',
+          fullWidth && "button--full-width",
+          isLoading && "button--loading",
           className,
         )}
         disabled={disabled || isLoading}
@@ -49,7 +49,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   },
 );
 
-Button.displayName = 'Button';
+Button.displayName = "Button";
 
 export { Button };
 export type { ButtonProps };

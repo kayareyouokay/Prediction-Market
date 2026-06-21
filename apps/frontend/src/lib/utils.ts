@@ -2,7 +2,13 @@
    Kairo — Utility Functions
    ────────────────────────────────────────────── */
 
-import type { Market, Orderbook, Position, PositionType, OrderType } from './types';
+import type {
+  Market,
+  Orderbook,
+  Position,
+  PositionType,
+  OrderType,
+} from "./types";
 
 /**
  * Format integer cents to display USD string.
@@ -10,9 +16,9 @@ import type { Market, Orderbook, Position, PositionType, OrderType } from './typ
  */
 export function formatCents(cents: number): string {
   const dollars = cents / 100;
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(dollars);
@@ -56,14 +62,14 @@ export function truncateAddress(address: string, chars: number = 4): string {
  * e.g. 1234567 → "1,234,567"
  */
 export function formatQty(qty: number): string {
-  return new Intl.NumberFormat('en-US').format(qty);
+  return new Intl.NumberFormat("en-US").format(qty);
 }
 
 /**
  * Merge class names, filtering out falsy values.
  */
 export function cn(...classes: (string | false | null | undefined)[]): string {
-  return classes.filter(Boolean).join(' ');
+  return classes.filter(Boolean).join(" ");
 }
 
 /**
@@ -79,13 +85,13 @@ export function getYesPrice(market: Market): number {
   // Best yes ask (lowest price someone is willing to sell Yes)
   const yesPrices = Object.keys(yesBook)
     .map(Number)
-    .filter(p => yesBook[String(p)]!.availableQty > 0)
+    .filter((p) => yesBook[String(p)]!.availableQty > 0)
     .sort((a, b) => a - b);
 
   // Best no ask → implies yes bid at 100 - price
   const noPrices = Object.keys(noBook)
     .map(Number)
-    .filter(p => noBook[String(p)]!.availableQty > 0)
+    .filter((p) => noBook[String(p)]!.availableQty > 0)
     .sort((a, b) => a - b);
 
   if (yesPrices.length > 0 && noPrices.length > 0) {
@@ -111,10 +117,12 @@ export function isResolved(market: Market): boolean {
 /**
  * Get the market status label.
  */
-export function getMarketStatus(market: Market): 'active' | 'resolved-yes' | 'resolved-no' {
-  if (market.resolution === 'Yes') return 'resolved-yes';
-  if (market.resolution === 'No') return 'resolved-no';
-  return 'active';
+export function getMarketStatus(
+  market: Market,
+): "active" | "resolved-yes" | "resolved-no" {
+  if (market.resolution === "Yes") return "resolved-yes";
+  if (market.resolution === "No") return "resolved-no";
+  return "active";
 }
 
 /**
@@ -122,10 +130,10 @@ export function getMarketStatus(market: Market): 'active' | 'resolved-yes' | 're
  */
 export function getOrderTypeLabel(type: OrderType): string {
   const labels: Record<OrderType, string> = {
-    Buy: 'Buy',
-    Sell: 'Sell',
-    Split: 'Split',
-    Merge: 'Merge',
+    Buy: "Buy",
+    Sell: "Sell",
+    Split: "Split",
+    Merge: "Merge",
   };
   return labels[type];
 }
@@ -134,29 +142,32 @@ export function getOrderTypeLabel(type: OrderType): string {
  * Get the position type display color class.
  */
 export function getPositionColor(type: PositionType): string {
-  return type === 'Yes' ? 'yes' : 'no';
+  return type === "Yes" ? "yes" : "no";
 }
 
 /**
  * Parse orderbook into sorted rows for display.
  */
-export function parseOrderbookRows(orderbook: Orderbook, side: 'bid' | 'ask'): Array<{ price: number; qty: number; total: number }> {
+export function parseOrderbookRows(
+  orderbook: Orderbook,
+  side: "bid" | "ask",
+): Array<{ price: number; qty: number; total: number }> {
   const entries = Object.entries(orderbook)
     .map(([price, level]) => ({
       price: Number(price),
       qty: level.availableQty,
     }))
-    .filter(e => e.qty > 0);
+    .filter((e) => e.qty > 0);
 
   // Sort: bids descending (highest first), asks ascending (lowest first)
-  if (side === 'bid') {
+  if (side === "bid") {
     entries.sort((a, b) => b.price - a.price);
   } else {
     entries.sort((a, b) => a.price - b.price);
   }
 
   let cumulative = 0;
-  return entries.map(e => {
+  return entries.map((e) => {
     cumulative += e.qty;
     return { ...e, total: cumulative };
   });
@@ -166,15 +177,21 @@ export function parseOrderbookRows(orderbook: Orderbook, side: 'bid' | 'ask'): A
  * Calculate total available quantity in an orderbook.
  */
 export function getTotalOrderbookQty(orderbook: Orderbook): number {
-  return Object.values(orderbook).reduce((sum, level) => sum + level.availableQty, 0);
+  return Object.values(orderbook).reduce(
+    (sum, level) => sum + level.availableQty,
+    0,
+  );
 }
 
 /**
  * Estimate the current value of a position based on market prices.
  */
-export function estimatePositionValue(position: Position, market: Market): number {
+export function estimatePositionValue(
+  position: Position,
+  market: Market,
+): number {
   const yesPrice = getYesPrice(market);
-  const price = position.type === 'Yes' ? yesPrice : 100 - yesPrice;
+  const price = position.type === "Yes" ? yesPrice : 100 - yesPrice;
   return position.qty * price;
 }
 
@@ -196,7 +213,7 @@ export function addressToGradient(address: string): string {
  * Delay utility for artificial loading states.
  */
 export function delay(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 /**

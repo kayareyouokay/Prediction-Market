@@ -1,18 +1,18 @@
-import { type HTMLAttributes, forwardRef } from 'react';
-import { cn } from '@/lib/utils';
-import './Card.css';
+import { type HTMLAttributes, forwardRef } from "react";
+import { cn } from "@/lib/utils";
+import "./Card.css";
 
 interface CardProps extends HTMLAttributes<HTMLDivElement> {
-  variant?: 'default' | 'glass' | 'elevated';
-  padding?: 'none' | 'sm' | 'md' | 'lg';
+  variant?: "default" | "glass" | "elevated";
+  padding?: "none" | "sm" | "md" | "lg";
   hoverable?: boolean;
 }
 
 const Card = forwardRef<HTMLDivElement, CardProps>(
   (
     {
-      variant = 'default',
-      padding = 'md',
+      variant = "default",
+      padding = "md",
       hoverable = false,
       className,
       children,
@@ -24,10 +24,10 @@ const Card = forwardRef<HTMLDivElement, CardProps>(
       <div
         ref={ref}
         className={cn(
-          'card',
+          "card",
           `card--${variant}`,
           `card--padding-${padding}`,
-          hoverable && 'card--hoverable',
+          hoverable && "card--hoverable",
           className,
         )}
         {...props}
@@ -38,7 +38,7 @@ const Card = forwardRef<HTMLDivElement, CardProps>(
   },
 );
 
-Card.displayName = 'Card';
+Card.displayName = "Card";
 
 export { Card };
 export type { CardProps };

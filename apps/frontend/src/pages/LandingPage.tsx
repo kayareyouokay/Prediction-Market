@@ -3,20 +3,28 @@
    Premium marketing page, first impression
    ────────────────────────────────────────────── */
 
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { Link } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
-import { useMarkets } from '@/hooks/useMarkets';
-import { formatCents, formatQty, getYesPrice } from '@/lib/utils';
-import { MarketCard } from '@/components/market/MarketCard';
-import { Skeleton } from '@/components/ui/Skeleton';
-import './LandingPage.css';
+import { useState, useEffect, useRef, useCallback } from "react";
+import { Link } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { useMarkets } from "@/hooks/useMarkets";
+import { formatCents, formatQty, getYesPrice } from "@/lib/utils";
+import { MarketCard } from "@/components/market/MarketCard";
+import { Skeleton } from "@/components/ui/Skeleton";
+import "./LandingPage.css";
 
 /* ── Inline SVG Icons ── */
 
 function ChartBarsIcon() {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
       <path d="M3 3v18h18" />
       <path d="M7 16V12" />
       <path d="M11 16V8" />
@@ -28,7 +36,15 @@ function ChartBarsIcon() {
 
 function ArrowsIcon() {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
       <path d="M7 4v16" />
       <path d="M3 8l4-4 4 4" />
       <path d="M17 20V4" />
@@ -39,7 +55,15 @@ function ArrowsIcon() {
 
 function PieChartIcon() {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
       <path d="M21.21 15.89A10 10 0 1 1 8 2.83" />
       <path d="M22 12A10 10 0 0 0 12 2v10z" />
     </svg>
@@ -48,7 +72,9 @@ function PieChartIcon() {
 
 /* ── IntersectionObserver Hook ── */
 
-function useInView(threshold = 0.15): [React.RefObject<HTMLDivElement | null>, boolean] {
+function useInView(
+  threshold = 0.15,
+): [React.RefObject<HTMLDivElement | null>, boolean] {
   const ref = useRef<HTMLDivElement | null>(null);
   const [isVisible, setIsVisible] = useState(false);
 
@@ -63,7 +89,7 @@ function useInView(threshold = 0.15): [React.RefObject<HTMLDivElement | null>, b
           observer.unobserve(el);
         }
       },
-      { threshold }
+      { threshold },
     );
 
     observer.observe(el);
@@ -88,7 +114,7 @@ export function LandingPage() {
   /* ── Derived stats ── */
   const marketCount = markets.length;
   const totalVolume = markets.reduce((sum, m) => sum + m.totalQty, 0);
-  const activeMarkets = markets.filter(m => m.resolution === null).length;
+  const activeMarkets = markets.filter((m) => m.resolution === null).length;
 
   const handleConnectWallet = useCallback(async () => {
     await signIn();
@@ -107,20 +133,32 @@ export function LandingPage() {
           </span>
 
           <h1 className="landing-hero__title">
-            Trade on the{' '}
+            Trade on the{" "}
             <span className="landing-hero__title-gradient">Future</span>
           </h1>
 
           <p className="landing-hero__subtitle">
-            Institutional-grade prediction markets. Trade binary outcomes
-            with real-time orderbooks.
+            Institutional-grade prediction markets. Trade binary outcomes with
+            real-time orderbooks.
           </p>
 
           <div className="landing-hero__actions">
             <Link to="/markets" className="landing-hero__cta-primary">
               Explore Markets
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 16 16"
+                fill="none"
+                aria-hidden="true"
+              >
+                <path
+                  d="M3 8h10M9 4l4 4-4 4"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
               </svg>
             </Link>
 
@@ -142,14 +180,18 @@ export function LandingPage() {
       </section>
 
       {/* ── Preview Markets ── */}
-      <section className="landing-preview" aria-label="Featured Markets" ref={previewRef}>
+      <section
+        className="landing-preview"
+        aria-label="Featured Markets"
+        ref={previewRef}
+      >
         <div className="landing-preview__inner">
           <p className="landing-section-label">Live Markets</p>
           <h2 className="landing-section-title">Trade What You Believe</h2>
 
           {isLoading ? (
             <div className="landing-preview__skeleton-grid" aria-busy="true">
-              {[0, 1, 2].map(i => (
+              {[0, 1, 2].map((i) => (
                 <div className="landing-preview__skeleton-card" key={i}>
                   <Skeleton width="70%" height="20px" borderRadius="6px" />
                   <Skeleton width="100%" height="14px" borderRadius="4px" />
@@ -163,7 +205,7 @@ export function LandingPage() {
               {previewMarkets.map((market, idx) => (
                 <div
                   key={market.id}
-                  className={`landing-preview__card-wrapper ${previewVisible ? 'landing-preview__card-wrapper--visible' : ''}`}
+                  className={`landing-preview__card-wrapper ${previewVisible ? "landing-preview__card-wrapper--visible" : ""}`}
                   style={{ transitionDelay: `${idx * 120}ms` }}
                 >
                   <div className="landing-preview__card-float">
@@ -172,7 +214,13 @@ export function LandingPage() {
                 </div>
               ))}
               {previewMarkets.length === 0 && (
-                <p style={{ gridColumn: '1 / -1', textAlign: 'center', color: 'var(--color-text-tertiary)' }}>
+                <p
+                  style={{
+                    gridColumn: "1 / -1",
+                    textAlign: "center",
+                    color: "var(--color-text-tertiary)",
+                  }}
+                >
                   No markets available yet. Check back soon.
                 </p>
               )}
@@ -182,39 +230,51 @@ export function LandingPage() {
       </section>
 
       {/* ── Features ── */}
-      <section className="landing-features" aria-label="Features" ref={featuresRef}>
+      <section
+        className="landing-features"
+        aria-label="Features"
+        ref={featuresRef}
+      >
         <div className="landing-features__inner">
           <p className="landing-section-label">Why Kairo</p>
           <h2 className="landing-section-title">Built for Serious Traders</h2>
 
           <div className="landing-features__grid">
-            <article className={`landing-feature-card ${featuresVisible ? 'landing-feature-card--visible' : ''}`}>
+            <article
+              className={`landing-feature-card ${featuresVisible ? "landing-feature-card--visible" : ""}`}
+            >
               <div className="landing-feature-card__icon">
                 <ChartBarsIcon />
               </div>
               <h3 className="landing-feature-card__title">Orderbook Trading</h3>
               <p className="landing-feature-card__desc">
-                Full limit orderbook with real-time depth. Set your price, control your risk.
-                No AMM slippage.
+                Full limit orderbook with real-time depth. Set your price,
+                control your risk. No AMM slippage.
               </p>
             </article>
 
-            <article className={`landing-feature-card ${featuresVisible ? 'landing-feature-card--visible' : ''}`}>
+            <article
+              className={`landing-feature-card ${featuresVisible ? "landing-feature-card--visible" : ""}`}
+            >
               <div className="landing-feature-card__icon">
                 <ArrowsIcon />
               </div>
               <h3 className="landing-feature-card__title">Split &amp; Merge</h3>
               <p className="landing-feature-card__desc">
-                Split USD into Yes + No shares or merge them back. Flexible position management
-                with atomic settlement.
+                Split USD into Yes + No shares or merge them back. Flexible
+                position management with atomic settlement.
               </p>
             </article>
 
-            <article className={`landing-feature-card ${featuresVisible ? 'landing-feature-card--visible' : ''}`}>
+            <article
+              className={`landing-feature-card ${featuresVisible ? "landing-feature-card--visible" : ""}`}
+            >
               <div className="landing-feature-card__icon">
                 <PieChartIcon />
               </div>
-              <h3 className="landing-feature-card__title">Portfolio Analytics</h3>
+              <h3 className="landing-feature-card__title">
+                Portfolio Analytics
+              </h3>
               <p className="landing-feature-card__desc">
                 Track positions, monitor P&amp;L, and view full order history.
                 Everything in one clean dashboard.
@@ -225,21 +285,33 @@ export function LandingPage() {
       </section>
 
       {/* ── Stats ── */}
-      <section className="landing-stats" aria-label="Platform Stats" ref={statsRef}>
+      <section
+        className="landing-stats"
+        aria-label="Platform Stats"
+        ref={statsRef}
+      >
         <div className="landing-stats__inner">
           <p className="landing-section-label">Platform</p>
           <h2 className="landing-section-title">Growing Every Day</h2>
 
           <div className="landing-stats__grid">
-            <div className={`landing-stat-card ${statsVisible ? 'landing-stat-card--visible' : ''}`}>
+            <div
+              className={`landing-stat-card ${statsVisible ? "landing-stat-card--visible" : ""}`}
+            >
               <p className="landing-stat-card__value">{marketCount}</p>
               <p className="landing-stat-card__label">Total Markets</p>
             </div>
-            <div className={`landing-stat-card ${statsVisible ? 'landing-stat-card--visible' : ''}`}>
-              <p className="landing-stat-card__value">{formatQty(totalVolume)}</p>
+            <div
+              className={`landing-stat-card ${statsVisible ? "landing-stat-card--visible" : ""}`}
+            >
+              <p className="landing-stat-card__value">
+                {formatQty(totalVolume)}
+              </p>
               <p className="landing-stat-card__label">Shares Traded</p>
             </div>
-            <div className={`landing-stat-card ${statsVisible ? 'landing-stat-card--visible' : ''}`}>
+            <div
+              className={`landing-stat-card ${statsVisible ? "landing-stat-card--visible" : ""}`}
+            >
               <p className="landing-stat-card__value">{activeMarkets}</p>
               <p className="landing-stat-card__label">Active Markets</p>
             </div>
@@ -252,7 +324,8 @@ export function LandingPage() {
         <div className="landing-cta__inner">
           <h2 className="landing-cta__title">Ready to Start Trading?</h2>
           <p className="landing-cta__desc">
-            Connect your Solana wallet and start trading on outcomes that matter to you.
+            Connect your Solana wallet and start trading on outcomes that matter
+            to you.
           </p>
           <div className="landing-hero__actions">
             <Link to="/markets" className="landing-hero__cta-primary">
@@ -267,11 +340,19 @@ export function LandingPage() {
         <div className="landing-footer__inner">
           <span className="landing-footer__brand">Kairo</span>
           <div className="landing-footer__links">
-            <Link to="/markets" className="landing-footer__link">Markets</Link>
-            <Link to="/portfolio" className="landing-footer__link">Portfolio</Link>
-            <Link to="/activity" className="landing-footer__link">Activity</Link>
+            <Link to="/markets" className="landing-footer__link">
+              Markets
+            </Link>
+            <Link to="/portfolio" className="landing-footer__link">
+              Portfolio
+            </Link>
+            <Link to="/activity" className="landing-footer__link">
+              Activity
+            </Link>
           </div>
-          <span className="landing-footer__copy">&copy; {new Date().getFullYear()} Kairo. All rights reserved.</span>
+          <span className="landing-footer__copy">
+            &copy; {new Date().getFullYear()} Kairo. All rights reserved.
+          </span>
         </div>
       </footer>
     </div>
