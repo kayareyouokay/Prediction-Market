@@ -3,13 +3,13 @@
    Slide-in drawer navigation for mobile
    ────────────────────────────────────────────── */
 
-import { useEffect, useCallback } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
-import { formatCents, truncateAddress, cn } from '@/lib/utils';
-import { Avatar } from '@/components/ui/Avatar';
-import { Button } from '@/components/ui/Button';
-import './MobileNav.css';
+import { useEffect, useCallback } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { formatCents, truncateAddress, cn } from "@/lib/utils";
+import { Avatar } from "@/components/ui/Avatar";
+import { Button } from "@/components/ui/Button";
+import "./MobileNav.css";
 
 interface MobileNavProps {
   isOpen: boolean;
@@ -17,9 +17,9 @@ interface MobileNavProps {
 }
 
 const navLinks = [
-  { label: 'Markets', path: '/markets' },
-  { label: 'Portfolio', path: '/portfolio' },
-  { label: 'Activity', path: '/activity' },
+  { label: "Markets", path: "/markets" },
+  { label: "Portfolio", path: "/portfolio" },
+  { label: "Activity", path: "/activity" },
 ];
 
 export function MobileNav({ isOpen, onClose }: MobileNavProps) {
@@ -34,25 +34,25 @@ export function MobileNav({ isOpen, onClose }: MobileNavProps) {
   /* Close on Escape */
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) onClose();
+      if (e.key === "Escape" && isOpen) onClose();
     },
-    [isOpen, onClose]
+    [isOpen, onClose],
   );
 
   useEffect(() => {
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
   }, [handleKeyDown]);
 
   /* Prevent body scroll when open */
   useEffect(() => {
     if (isOpen) {
-      document.body.style.overflow = 'hidden';
+      document.body.style.overflow = "hidden";
     } else {
-      document.body.style.overflow = '';
+      document.body.style.overflow = "";
     }
     return () => {
-      document.body.style.overflow = '';
+      document.body.style.overflow = "";
     };
   }, [isOpen]);
 
@@ -65,14 +65,17 @@ export function MobileNav({ isOpen, onClose }: MobileNavProps) {
     <>
       {/* Backdrop */}
       <div
-        className={cn('mobile-nav-overlay', isOpen && 'mobile-nav-overlay--visible')}
+        className={cn(
+          "mobile-nav-overlay",
+          isOpen && "mobile-nav-overlay--visible",
+        )}
         onClick={onClose}
         aria-hidden="true"
       />
 
       {/* Drawer */}
       <nav
-        className={cn('mobile-nav', isOpen && 'mobile-nav--open')}
+        className={cn("mobile-nav", isOpen && "mobile-nav--open")}
         aria-label="Mobile navigation"
         aria-hidden={!isOpen}
       >
@@ -98,7 +101,15 @@ export function MobileNav({ isOpen, onClose }: MobileNavProps) {
               aria-label="Close navigation"
               type="button"
             >
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 16 16"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+              >
                 <path d="M4 4l8 8M12 4l-8 8" />
               </svg>
             </button>
@@ -107,13 +118,14 @@ export function MobileNav({ isOpen, onClose }: MobileNavProps) {
 
         {/* Links */}
         <div className="mobile-nav__links">
-          {navLinks.map(link => (
+          {navLinks.map((link) => (
             <Link
               key={link.path}
               to={link.path}
               className={cn(
-                'mobile-nav__link',
-                location.pathname.startsWith(link.path) && 'mobile-nav__link--active'
+                "mobile-nav__link",
+                location.pathname.startsWith(link.path) &&
+                  "mobile-nav__link--active",
               )}
               onClick={onClose}
             >

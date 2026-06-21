@@ -6,10 +6,10 @@
 
 /* ── Enums ── */
 
-export type PositionType = 'Yes' | 'No';
-export type OrderType = 'Buy' | 'Sell' | 'Split' | 'Merge';
-export type OrderSide = 'yes' | 'no';
-export type TradeType = 'buy' | 'sell';
+export type PositionType = "Yes" | "No";
+export type OrderType = "Buy" | "Sell" | "Split" | "Merge";
+export type OrderSide = "yes" | "no";
+export type TradeType = "buy" | "sell";
 
 /* ── Database Entities ── */
 
@@ -74,7 +74,7 @@ export interface CreateOrderRequest {
   marketId: string;
   side: OrderSide;
   type: TradeType;
-  price: number;  // 1–99 (cents)
+  price: number; // 1–99 (cents)
   qty: number;
 }
 
@@ -135,10 +135,10 @@ export interface OfframpResponse {
 /* ── UI State Types ── */
 
 export type AsyncState<T> =
-  | { status: 'idle' }
-  | { status: 'loading' }
-  | { status: 'success'; data: T }
-  | { status: 'error'; error: string };
+  | { status: "idle" }
+  | { status: "loading" }
+  | { status: "success"; data: T }
+  | { status: "error"; error: string };
 
 export interface ApiError {
   message: string;
@@ -163,12 +163,12 @@ export interface OrderbookRow {
   price: number;
   qty: number;
   total: number; // cumulative qty
-  side: 'bid' | 'ask';
+  side: "bid" | "ask";
 }
 
 export interface PortfolioSummary {
-  totalValue: number;      // balance + estimated position value in cents
+  totalValue: number; // balance + estimated position value in cents
   totalPositions: number;
   activeMarkets: number;
-  balance: number;         // usdBalance in cents
+  balance: number; // usdBalance in cents
 }

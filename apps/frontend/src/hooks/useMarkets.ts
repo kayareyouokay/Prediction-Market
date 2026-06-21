@@ -3,9 +3,9 @@
    Fetches all markets with loading/error/refetch
    ────────────────────────────────────────────── */
 
-import { useState, useEffect, useCallback, useRef } from 'react';
-import type { Market } from '@/lib/types';
-import { fetchMarkets } from '@/lib/api';
+import { useState, useEffect, useCallback, useRef } from "react";
+import type { Market } from "@/lib/types";
+import { fetchMarkets } from "@/lib/api";
 
 interface UseMarketsReturn {
   markets: Market[];
@@ -35,9 +35,9 @@ export function useMarkets(): UseMarketsReturn {
         const message =
           err instanceof Error
             ? err.message
-            : typeof err === 'object' && err !== null && 'message' in err
+            : typeof err === "object" && err !== null && "message" in err
               ? String((err as { message: unknown }).message)
-              : 'Failed to fetch markets';
+              : "Failed to fetch markets";
         setError(message);
       }
     } finally {

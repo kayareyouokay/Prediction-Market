@@ -7,8 +7,10 @@ const markets = [
   {
     id: uuid(),
     title: "Will Bitcoin reach $100,000 by end of 2025?",
-    description: "This market resolves to Yes if Bitcoin trades at or above $100,000 on any major exchange before December 31, 2025.",
-    resolutionDescription: "Based on Bitcoin price on CoinMarketCap or similar major exchange",
+    description:
+      "This market resolves to Yes if Bitcoin trades at or above $100,000 on any major exchange before December 31, 2025.",
+    resolutionDescription:
+      "Based on Bitcoin price on CoinMarketCap or similar major exchange",
     yesOrderbook: emptyOrderbook,
     noOrderbook: emptyOrderbook,
     totalQty: 0,
@@ -16,8 +18,10 @@ const markets = [
   {
     id: uuid(),
     title: "Will AI pass Turing test by 2026?",
-    description: "This market resolves to Yes if an AI system is widely recognized as passing the Turing test by end of 2026.",
-    resolutionDescription: "Based on consensus from major AI research organizations",
+    description:
+      "This market resolves to Yes if an AI system is widely recognized as passing the Turing test by end of 2026.",
+    resolutionDescription:
+      "Based on consensus from major AI research organizations",
     yesOrderbook: emptyOrderbook,
     noOrderbook: emptyOrderbook,
     totalQty: 0,
@@ -25,8 +29,10 @@ const markets = [
   {
     id: uuid(),
     title: "Will SpaceX land humans on Mars by 2030?",
-    description: "This market resolves to Yes if SpaceX successfully lands humans on Mars before January 1, 2030.",
-    resolutionDescription: "Based on official SpaceX announcements and independent verification",
+    description:
+      "This market resolves to Yes if SpaceX successfully lands humans on Mars before January 1, 2030.",
+    resolutionDescription:
+      "Based on official SpaceX announcements and independent verification",
     yesOrderbook: emptyOrderbook,
     noOrderbook: emptyOrderbook,
     totalQty: 0,
@@ -34,8 +40,10 @@ const markets = [
   {
     id: uuid(),
     title: "Will Ethereum 2.0 be fully implemented by 2025?",
-    description: "This market resolves to Yes if Ethereum completes its full transition to proof-of-stake and all planned upgrades by end of 2025.",
-    resolutionDescription: "Based on official Ethereum Foundation announcements",
+    description:
+      "This market resolves to Yes if Ethereum completes its full transition to proof-of-stake and all planned upgrades by end of 2025.",
+    resolutionDescription:
+      "Based on official Ethereum Foundation announcements",
     yesOrderbook: emptyOrderbook,
     noOrderbook: emptyOrderbook,
     totalQty: 0,
@@ -43,7 +51,8 @@ const markets = [
   {
     id: uuid(),
     title: "Will a COVID-19 vaccine be available by 2025?",
-    description: "This market resolves to Yes if an FDA-approved COVID-19 vaccine is available to the public by end of 2025.",
+    description:
+      "This market resolves to Yes if an FDA-approved COVID-19 vaccine is available to the public by end of 2025.",
     resolutionDescription: "Based on FDA approval announcements",
     yesOrderbook: emptyOrderbook,
     noOrderbook: emptyOrderbook,
@@ -100,14 +109,16 @@ async function seed() {
 
   console.log("Creating sample positions...");
   // Inventory is deliberately sufficient to cover the seeded resting asks.
-  await prisma.position.createMany({ data: [
-    { userId: user1.id, marketId: market.id, type: "Yes", qty: 135 },
-    { userId: user1.id, marketId: market.id, type: "No", qty: 90 },
-    { userId: user2.id, marketId: market.id, type: "Yes", qty: 165 },
-    { userId: user2.id, marketId: market.id, type: "No", qty: 110 },
-    { userId: user3.id, marketId: market.id, type: "Yes", qty: 140 },
-    { userId: user3.id, marketId: market.id, type: "No", qty: 150 },
-  ] });
+  await prisma.position.createMany({
+    data: [
+      { userId: user1.id, marketId: market.id, type: "Yes", qty: 135 },
+      { userId: user1.id, marketId: market.id, type: "No", qty: 90 },
+      { userId: user2.id, marketId: market.id, type: "Yes", qty: 165 },
+      { userId: user2.id, marketId: market.id, type: "No", qty: 110 },
+      { userId: user3.id, marketId: market.id, type: "Yes", qty: 140 },
+      { userId: user3.id, marketId: market.id, type: "No", qty: 150 },
+    ],
+  });
 
   // Create some order history
   console.log("Creating sample order history...");
@@ -473,14 +484,16 @@ async function seed() {
   });
 
   // Add positions for market 2
-  await prisma.position.createMany({ data: [
-    { userId: user1.id, marketId: market2.id, type: "Yes", qty: 60 },
-    { userId: user1.id, marketId: market2.id, type: "No", qty: 40 },
-    { userId: user2.id, marketId: market2.id, type: "Yes", qty: 40 },
-    { userId: user2.id, marketId: market2.id, type: "No", qty: 50 },
-    { userId: user3.id, marketId: market2.id, type: "Yes", qty: 50 },
-    { userId: user3.id, marketId: market2.id, type: "No", qty: 50 },
-  ] });
+  await prisma.position.createMany({
+    data: [
+      { userId: user1.id, marketId: market2.id, type: "Yes", qty: 60 },
+      { userId: user1.id, marketId: market2.id, type: "No", qty: 40 },
+      { userId: user2.id, marketId: market2.id, type: "Yes", qty: 40 },
+      { userId: user2.id, marketId: market2.id, type: "No", qty: 50 },
+      { userId: user3.id, marketId: market2.id, type: "Yes", qty: 50 },
+      { userId: user3.id, marketId: market2.id, type: "No", qty: 50 },
+    ],
+  });
 
   // Add order history for market 2
   await prisma.orderHistory.create({

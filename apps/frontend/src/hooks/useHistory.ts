@@ -3,10 +3,10 @@
    Fetches the authenticated user's order history
    ────────────────────────────────────────────── */
 
-import { useState, useEffect, useCallback, useRef } from 'react';
-import type { OrderHistory } from '@/lib/types';
-import { fetchHistory } from '@/lib/api';
-import { useAuth } from '@/contexts/AuthContext';
+import { useState, useEffect, useCallback, useRef } from "react";
+import type { OrderHistory } from "@/lib/types";
+import { fetchHistory } from "@/lib/api";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface UseHistoryReturn {
   history: OrderHistory[];
@@ -39,9 +39,9 @@ export function useHistory(): UseHistoryReturn {
         const message =
           err instanceof Error
             ? err.message
-            : typeof err === 'object' && err !== null && 'message' in err
+            : typeof err === "object" && err !== null && "message" in err
               ? String((err as { message: unknown }).message)
-              : 'Failed to fetch order history';
+              : "Failed to fetch order history";
         setError(message);
       }
     } finally {
