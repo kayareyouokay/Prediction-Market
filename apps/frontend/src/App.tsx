@@ -169,8 +169,8 @@ function MarketDetail({ marketId, address, signIn }: Shared & { marketId: string
   const available = useMemo(() => undefined, []); // keep public list cache separate from live depth
   void available;
   const [market, setMarket] = useState<Market | null>(null); const [loading, setLoading] = useState(true); const [error, setError] = useState<string | null>(null); const [tab, setTab] = useState<'overview' | 'orderbook' | 'rules'>('overview');
-  const load = useCallback(async () => { setLoading(true); setError(null); try { setMarket((await fetchMarket(marketId)).market); } catch (err) { setError(errorMessage(err)); } finally { setLoading(false); } }, [marketId]);
-  useEffect(() => { void load(); const interval = window.setInterval(() => void load(), 12000); return () => window.clearInterval(interval); }, [load]);
+  const load = useCallback(async (silent = false) => { if (!silent) { setLoading(true); setError(null); } try { setMarket((await fetchMarket(marketId)).market); } catch (err) { if (!silent) setError(errorMessage(err)); } finally { if (!silent) setLoading(false); } }, [marketId]);
+  useEffect(() => { void load(); const interval = window.setInterval(() => void load(true), 12000); return () => window.clearInterval(interval); }, [load]);
   if (loading) return <main className="page"><DetailSkeleton /></main>;
   if (error || !market) return <main className="page"><StateCard kind="error" title="Market unavailable" detail={error ?? 'This market no longer exists.'} action="Try again" onAction={load} /></main>;
   const price = yesPrice(market);
